@@ -1,7 +1,7 @@
 # Dhruva Quote Desk: a guide for reviewers
 
 
-**Hosted demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev. Sign in with the six-digit access code from the email. It runs on a real model (OpenAI gpt-5-mini), so free-text requests are understood and the Audit trail shows the real AI cost. If ngrok shows a notice page first, click **Visit Site**.
+**Hosted demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev. Sign in with the six-digit access code from the email. It runs on a real model (OpenAI GPT-6.1 Terra), so free-text requests are understood and the Audit trail shows the real AI cost. If ngrok shows a notice page first, click **Visit Site**.
 
 ## What the demo shows
 

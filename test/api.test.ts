@@ -115,7 +115,7 @@ describe('Roles, CORS, agents (8.1, #18, #19)', () => {
       const r = await ctx.api('', 'OPTIONS', '/quotes', undefined, { origin: 'http://localhost:5173' });
       expect(r.status).toBe(204);
       expect(r.headers.get('access-control-allow-origin')).toBe('http://localhost:5173');
-      expect(r.headers.get('access-control-allow-headers')).toBe('content-type, x-demo-user');
+      expect(r.headers.get('access-control-allow-headers')).toBe('content-type, x-demo-user, x-demo-code');
       expect(r.headers.get('access-control-max-age')).toBe('600');
       const other = await ctx.api('', 'OPTIONS', '/quotes', undefined, { origin: 'http://evil.example' });
       expect(other.headers.get('access-control-allow-origin')).toBeNull();

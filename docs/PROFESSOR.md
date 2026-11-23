@@ -1,5 +1,8 @@
 # Dhruva Quote Desk: a guide for reviewers
 
+
+**Hosted demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev. Sign in with the six-digit access code from the email. It runs on a real model (OpenAI gpt-5-mini), so free-text requests are understood and the Audit trail shows the real AI cost. If ngrok shows a notice page first, click **Visit Site**.
+
 ## What the demo shows
 
 Dhruva Components gets requests for quotes by email, chat, phone and API. This demo runs each request from the first message to an order, a loss or an expiry. The rules are simple:

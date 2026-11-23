@@ -1,6 +1,6 @@
 # Dhruva Quote Desk: backend
 
-**Live demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev (click **Enter as Professor**). Walkthrough: [docs/PROFESSOR.md](docs/PROFESSOR.md). Server setup: `NGROK_URL=<your ngrok domain> bash scripts/deploy/setup-server.sh`.
+**Live demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev (sign in with the six-digit access code sent by email). Walkthrough: [docs/PROFESSOR.md](docs/PROFESSOR.md). Server setup: `NGROK_URL=<your ngrok domain> bash scripts/deploy/setup-server.sh`; model, API key and access code go in `/etc/dhruva/ai.env` on the server (never in git).
 
 Each request for quotation (RFQ) is one durable Temporal workflow, from the customer's first message to an order, a loss or an expiry. Five narrow AI agents do the reading and writing, and every output cites the code-built facts it used (section 14 of the design). Fixed code decides price, stock and sending. People approve through signals. The build contract is `docs/DESIGN.md`; the approved screens are `../quote-agent-mockup.html`; the web app is in `web/`. A step-by-step guide for reviewers, with no API key needed, is `docs/PROFESSOR.md`.
 
@@ -46,7 +46,7 @@ QUOTE_MODEL=mock pnpm dev                            # worker + API in one proce
 pnpm --filter web dev                                # frontend on :5173
 ```
 
-Environment: `PORT` (API, 3000), `TEMPORAL_ADDRESS` (`localhost:7233`), `QUOTE_DB` (`quote-agent.db`), `WEB_ORIGIN` (allowed browser origins, comma-separated; default the Vite dev server on 5173), `DEMO_ACCESS_CODE` (`DHRUVA-DEMO`), `RESET_ON_BOOT`, `API_URL` (for `pnpm demo`). Web: `VITE_API_URL` (default `http://localhost:3000`), `VITE_MOCK=1` (in-browser mock API, no backend).
+Environment: `PORT` (API, 3000), `TEMPORAL_ADDRESS` (`localhost:7233`), `QUOTE_DB` (`quote-agent.db`), `WEB_ORIGIN` (allowed browser origins, comma-separated; default the Vite dev server on 5173), `DEMO_ACCESS_CODE` (`DHRUVA-DEMO`), `DEMO_REQUIRE_CODE=1` (hosted demo: login needs the code and every API request must send it in `x-demo-code`; 10 wrong codes lock an address for 15 minutes), `RESET_ON_BOOT`, `API_URL` (for `pnpm demo`). Web: `VITE_API_URL` (default `http://localhost:3000`), `VITE_MOCK=1` (in-browser mock API, no backend).
 
 `STAGE=prod` refuses the demo login (503). Models: `STAGE=dev` (default) uses the open-weight model `local:qwen3:8b` (`LOCAL_BASE_URL`, e.g. Ollama); `STAGE=prerelease|prod` uses `openai:gpt-5-mini` (`OPENAI_API_KEY`). `QUOTE_MODEL` overrides; `INTAKE_MODEL`, `CLARIFY_MODEL`, `FINANCE_MODEL`, `DECLINE_MODEL`, `EVIDENCE_MODEL`, `SMALL_ORDER_MODEL` override per agent; `CHEAP_MODEL` adds a candidate for the cheap path; `SHIP_MODEL` and `OPEN_WEIGHT_MODEL` rename the stage defaults; `LOCAL_API_KEY` for the local server. Prices: `AI_PRICE_SHIP_INR_PER_M` (410), `AI_PRICE_OPEN_INR_PER_M` (25), `AI_PRICE_MOCK_INR_PER_M` (0), `AI_PRICE_TABLE`, `COMPUTE_INR_PER_RFQ` (1), `ACTIONS_PER_RFQ` (40). The API resets the demo on first boot (`RESET_ON_BOOT=1` forces it). `pnpm demo …` is a small CLI (see `scripts/demo.ts`).
 

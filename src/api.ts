@@ -328,20 +328,47 @@ export function createApi(deps: ApiDeps): Api {
     };
   }
 
+  // ---- Access code (hosted demo) ----
+  const codeRequired = () => process.env.DEMO_REQUIRE_CODE === '1';
+  const misses = new Map<string, { n: number; since: number }>();
+  const clientIp = (req: IncomingMessage) =>
+    (String(req.headers['x-forwarded-for'] ?? '').split(',')[0] ?? '').trim() || req.socket.remoteAddress || 'unknown';
+  const codeLocked = (ip: string) => {
+    const e = misses.get(ip);
+    if (!e) return false;
+    if (Date.now() - e.since > 15 * 60_000) { misses.delete(ip); return false; }
+    return e.n >= 10;
+  };
+  const codeFailed = (ip: string) => {
+    const e = misses.get(ip);
+    if (!e || Date.now() - e.since > 15 * 60_000) misses.set(ip, { n: 1, since: Date.now() });
+    else e.n += 1;
+  };
+
   // ---- Router ----
 
   async function route(req: IncomingMessage, res: ServerResponse, path: string[]): Promise<void> {
     const m = req.method ?? 'GET';
     const [a, b, c, d] = path;
-    if (m === 'GET' && a === 'health') return send(res, 200, { ok: true });
+    if (m === 'GET' && a === 'health') return send(res, 200, { ok: true, codeRequired: codeRequired() });
     // A5: x-demo-user is spoofable by design; it must never be the login in production.
     if (stage === 'prod') throw new HttpError(503, 'demo login is disabled when STAGE=prod; configure SSO and customer API keys', 'DEMO_AUTH_DISABLED');
 
     if (a === 'session' && !b && m === 'POST') {
       const body = await json(req);
       const code = process.env.DEMO_ACCESS_CODE ?? 'DHRUVA-DEMO';
-      if (body.code !== undefined && body.code !== code) throw new HttpError(401, 'wrong access code');
+      const ip = clientIp(req);
+      if (codeLocked(ip)) throw new HttpError(429, 'too many wrong codes; try again in 15 minutes', 'CODE_LOCKED');
+      const given = body.code === undefined ? undefined : String(body.code).trim();
+      if ((codeRequired() && given === undefined) || (given !== undefined && given !== code)) {
+        codeFailed(ip);
+        throw new HttpError(401, 'wrong access code', 'WRONG_CODE');
+      }
       return send(res, 200, session({ kind: 'professor', name: 'professor' }));
+    }
+    // DEMO_REQUIRE_CODE=1: every request must carry the access code (the hosted demo uses a real, paid model).
+    if (codeRequired() && String(req.headers['x-demo-code'] ?? '') !== (process.env.DEMO_ACCESS_CODE ?? 'DHRUVA-DEMO')) {
+      throw new HttpError(401, 'access code required', 'CODE_REQUIRED');
     }
 
     const user = parseUser(req.headers['x-demo-user']);
@@ -793,7 +820,7 @@ export function createApi(deps: ApiDeps): Api {
       res.setHeader('vary', 'Origin');
     }
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, { 'access-control-allow-methods': 'GET, POST, PUT, OPTIONS', 'access-control-allow-headers': 'content-type, x-demo-user', 'access-control-max-age': '600' }).end();
+      res.writeHead(204, { 'access-control-allow-methods': 'GET, POST, PUT, OPTIONS', 'access-control-allow-headers': 'content-type, x-demo-user, x-demo-code', 'access-control-max-age': '600' }).end();
       return;
     }
     try {

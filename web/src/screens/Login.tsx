@@ -1,18 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLogin } from '@/api/hooks';
-import { setUser } from '@/api/client';
+import { api, setCode as saveCode, setUser } from '@/api/client';
 
 export function Login() {
   const [showCode, setShowCode] = useState(false);
-  const [code, setCode] = useState('DHRUVA-DEMO');
+  const [code, setCode] = useState('');
+  const [codeOnly, setCodeOnly] = useState(false);
+  useEffect(() => {
+    api<{ codeRequired?: boolean }>('GET', '/health').then((h) => setCodeOnly(!!h.codeRequired)).catch(() => {});
+  }, []);
   const login = useLogin();
   const nav = useNavigate();
   const qc = useQueryClient();
   const enter = (c?: string) =>
     login.mutate(c, {
       onSuccess: (s) => {
+        saveCode(c ?? null);
         setUser(s.user);
         qc.setQueryData(['session'], s);
         nav('/sales');
@@ -26,6 +31,14 @@ export function Login() {
           <span className="font-semibold text-lg">Dhruva Quote Desk</span>
         </div>
         <p className="note mb-6">Class demo. All customers and prices are made up.</p>
+        {codeOnly ? (
+          <form className="text-left" onSubmit={(e) => { e.preventDefault(); enter(code.trim()); }}>
+            <label className="lbl" htmlFor="code6">Access code</label>
+            <input id="code6" className="input mb-3 font-mono text-center text-lg tracking-[0.4em]" inputMode="numeric" autoComplete="one-time-code"
+              maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus />
+            <button className="btn btn-primary btn-lg w-full" disabled={login.isPending || code.length !== 6}>Sign in</button>
+          </form>
+        ) : (<>
         <button className="btn btn-primary btn-lg w-full" disabled={login.isPending} onClick={() => enter()}>Enter as Professor</button>
         <button className="link mt-4 !text-sm" onClick={() => setShowCode((v) => !v)} aria-expanded={showCode} aria-controls="codebox">Use access code</button>
         {showCode && (
@@ -35,6 +48,7 @@ export function Login() {
             <button className="btn w-full" disabled={login.isPending}>Sign in</button>
           </form>
         )}
+        </>)}
         {login.error ? <p className="mt-3 text-sm font-semibold text-red-800" role="alert">{login.error.message}</p> : null}
       </div>
     </div>

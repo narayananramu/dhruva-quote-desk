@@ -16,6 +16,22 @@ export function getUser(): string | null {
     return null;
   }
 }
+const CODE_KEY = 'dhruva.code';
+export function getCode(): string | null {
+  try {
+    return localStorage.getItem(CODE_KEY);
+  } catch {
+    return null;
+  }
+}
+export function setCode(code: string | null) {
+  try {
+    if (code) localStorage.setItem(CODE_KEY, code);
+    else localStorage.removeItem(CODE_KEY);
+  } catch {
+    /* private mode */
+  }
+}
 export function setUser(user: string | null) {
   try {
     if (user) localStorage.setItem(USER_KEY, user);
@@ -60,6 +76,8 @@ export async function api<T>(method: 'GET' | 'POST' | 'PUT', path: string, body?
     const headers: Record<string, string> = {};
     if (body !== undefined) headers['content-type'] = 'application/json';
     if (user) headers['x-demo-user'] = user;
+    const code = getCode();
+    if (code) headers['x-demo-code'] = code;
     let res: Response;
     try {
       res = await fetch(BASE + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -100,7 +118,7 @@ export async function rawPost(path: string, bodyText: string): Promise<{ status:
   try {
     const res = await fetch(BASE + path, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...(user ? { 'x-demo-user': user } : {}) },
+      headers: { 'content-type': 'application/json', ...(user ? { 'x-demo-user': user } : {}), ...(getCode() ? { 'x-demo-code': getCode() as string } : {}) },
       body: bodyText,
     });
     const text = await res.text();

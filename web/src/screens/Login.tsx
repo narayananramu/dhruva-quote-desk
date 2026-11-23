@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLogin } from '@/api/hooks';
 import { api, setCode as saveCode, setUser } from '@/api/client';
@@ -13,6 +13,7 @@ export function Login() {
   }, []);
   const login = useLogin();
   const nav = useNavigate();
+  const from = (useLocation().state as { from?: string } | null)?.from;
   const qc = useQueryClient();
   const enter = (c?: string) =>
     login.mutate(c, {
@@ -20,7 +21,7 @@ export function Login() {
         saveCode(c ?? null);
         setUser(s.user);
         qc.setQueryData(['session'], s);
-        nav('/sales');
+        nav(from && from !== '/' && !from.startsWith('/login') ? from : '/sales', { replace: true });
       },
     });
   return (

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { ApiError, getUser, setUnauthorizedHandler, setUser } from '@/api/client';
 import { useSession } from '@/api/hooks';
@@ -15,13 +15,15 @@ import { Sales } from '@/screens/Sales';
 
 function Guard() {
   const user = getUser();
+  const loc = useLocation();
+  const back = { from: loc.pathname + loc.search };
   const session = useSession(!!user);
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace state={back} />;
   if (!session.data) {
     if (!session.error) return null;
     if (session.error instanceof ApiError && session.error.status === 401) {
       setUser(null);
-      return <Navigate to="/login" replace />;
+      return <Navigate to="/login" replace state={back} />;
     }
     return (
       <main className="max-w-md mx-auto px-4 py-16 text-center">
@@ -52,7 +54,8 @@ export function App() {
     setUnauthorizedHandler(() => {
       setUser(null);
       qc.clear();
-      nav('/login', { replace: true });
+      const from = window.location.pathname + window.location.search;
+      nav('/login', { replace: true, state: from.startsWith('/login') ? undefined : { from } });
     });
   }, [nav, qc]);
   return (

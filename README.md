@@ -1,5 +1,7 @@
 # Dhruva Quote Desk: backend
 
+**Live demo:** https://donnetta-regainable-nonmetallurgically.ngrok-free.dev (click **Enter as Professor**). Walkthrough: [docs/PROFESSOR.md](docs/PROFESSOR.md). Server setup: `NGROK_URL=<your ngrok domain> bash scripts/deploy/setup-server.sh`.
+
 Each request for quotation (RFQ) is one durable Temporal workflow, from the customer's first message to an order, a loss or an expiry. Five narrow AI agents do the reading and writing, and every output cites the code-built facts it used (section 14 of the design). Fixed code decides price, stock and sending. People approve through signals. The build contract is `docs/DESIGN.md`; the approved screens are `../quote-agent-mockup.html`; the web app is in `web/`. A step-by-step guide for reviewers, with no API key needed, is `docs/PROFESSOR.md`.
 
 ## Agents (`src/agents/`, prompts in `prompts.ts`)

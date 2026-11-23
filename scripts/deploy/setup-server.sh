@@ -104,12 +104,14 @@ Description=ngrok tunnel to the Dhruva demo
 After=network-online.target caddy.service
 Wants=network-online.target
 [Service]
-ExecStart=/usr/bin/ngrok http 80 --config /etc/ngrok/ngrok.yml --log stdout
+ExecStart=NGROK_BIN http 80 --url NGROK_URL --config /etc/ngrok/ngrok.yml --log stdout
 Restart=always
 RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOF
+
+sed -i "s#NGROK_BIN#$(command -v ngrok)#; s#NGROK_URL#${NGROK_URL:?set NGROK_URL to your ngrok domain}#" /etc/systemd/system/dhruva-ngrok.service
 
 # Fresh demo every night at 03:00 IST
 cat > /etc/cron.d/dhruva-reset <<'EOF'
